@@ -146,8 +146,13 @@ Register a user, then manually update its role in MongoDB (first admin), after t
 - (Future) Consider structured logging (pino/winston)
 
 
-## License
-Internal project (no license specified). Add one if open-sourcing later.
+## 📄 License
+
+This project is licensed under the MIT License.
 
 ---
-Maintained with care. Update screenshots and demo links after deployment.
+
+## 💬 Contact
+
+📧 Email: rj.vidyagyan@gmail.com
+Feel free to reach out for feedback
