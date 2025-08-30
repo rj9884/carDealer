@@ -1,0 +1,153 @@
+# Car Dealer Platform
+
+Full-stack car dealership platform with user authentication, email verification (OTP), password reset, role-based admin panel, and Cloudinary-backed image management.
+
+## Live Demo
+- Live URL: https://your-live-demo.example.com (replace with production link)
+- API Base (example): https://api.your-live-demo.example.com
+
+> Update the above links once deployed.
+
+## Screenshots / UI Preview
+Add (or replace) the following paths with real screenshot image links (e.g. GitHub issue attachments or CDN URLs):
+
+| Feature | Screenshot |
+|---------|------------|
+| Home / Listing | ![Home](./docs/screenshots/home.png) |
+| Car Detail | ![Car Detail](./docs/screenshots/detail.png) |
+| Register / Verify Email | ![Verify Email](./docs/screenshots/verify.png) |
+| Login | ![Login](./docs/screenshots/login.png) |
+| Admin Panel (Cars) | ![Admin Cars](./docs/screenshots/admin-cars.png) |
+| Admin Panel (Users) | ![Admin Users](./docs/screenshots/admin-users.png) |
+| Add Car Modal | ![Add Car](./docs/screenshots/add-car.png) |
+| Profile | ![Profile](./docs/screenshots/profile.png) |
+
+Create a `docs/screenshots` folder and drop images there or link external URLs.
+
+## Tech Stack
+### Frontend
+- React 19 + Vite
+- React Router
+- Tailwind CSS utilities (custom classes in `client/src/index.css`)
+- Axios (with credentials)
+- Heroicons
+
+### Backend
+- Node.js / Express 5
+- MongoDB + Mongoose 8
+- JWT auth (httpOnly cookies + Authorization header support)
+- Cloudinary (image hosting)
+- Multer (temp storage only, files deleted after Cloudinary upload)
+- Nodemailer (Brevo SMTP relay) for OTP & password reset
+- Helmet, CORS (dynamic allow-list), rate limiting, security middlewares
+
+## Key Features
+- User registration with email verification (OTP)
+- Secure login + httpOnly cookie token storage
+- Password reset via OTP email
+- Role-based access: admin vs standard user
+- Admin Panel: create/delete cars, manage users, promote/demote admins (with safeguard for last admin)
+- Car listing & detail pages using Cloudinary image URLs only
+- Profile management & timestamps (createdAt / updatedAt surfaced)
+- Centralized environment configuration (`server/src/config/env.js`)
+- Removed legacy seeding & local image serving for production parity
+
+## Project Structure (Top-Level)
+```
+client/           # React frontend
+server/           # Express API
+README.md         # This file
+IMPLEMENTATION-SUMMARY.md  # Running dev change log / summary
+```
+
+Notable backend folders:
+```
+server/src/controllers
+server/src/middlewares
+server/src/models
+server/src/routes
+server/src/utils
+server/src/config/env.js
+```
+
+## Environment Variables
+Create `.env` files in `server/` and optionally in `client/` (for Vite: prefix with VITE_). Example server `.env`:
+```
+PORT=5000
+NODE_ENV=development
+MONGODB_URI=mongodb://localhost:27017/carDealer
+JWT_SECRET=change_me_in_production
+SMTP_USER=your_brevo_user
+SMTP_PASS=your_brevo_pass
+SENDER_EMAIL=car-dealer@example.com
+CLOUDINARY_CLOUD_NAME=xxxx
+CLOUDINARY_API_KEY=xxxx
+CLOUDINARY_API_SECRET=xxxx
+CORS_ORIGINS=http://localhost:5173
+```
+`config/env.js` loads these once and exports typed constants. In development a fallback JWT secret is provided with a warning if not set.
+
+## Local Development
+### 1. Install Dependencies
+From both `client` and `server` folders:
+```
+npm install
+```
+
+### 2. Run Dev Servers (two terminals)
+Client (Vite default 5173) and Server (e.g., 5000):
+```
+# In client/
+npm run dev
+
+# In server/
+npm run dev
+```
+
+### 3. Access App
+Visit: http://localhost:5173
+
+### 4. Creating an Admin
+Register a user, then manually update its role in MongoDB (first admin), after that you can promote/demote through the Admin Panel endpoints.
+
+## API Overview (Selected)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /api/users/register | Register + send verification OTP |
+| POST | /api/users/login | Login, sets cookie |
+| POST | /api/users/verify-email | Verify OTP |
+| POST | /api/users/forgot-password | Request password reset OTP |
+| POST | /api/users/reset-password | Reset password with OTP |
+| GET | /api/users/profile | Get current user profile |
+| GET | /api/users/admin/status/summary | Admin stats summary |
+| POST | /api/users/admin/promote/:id | Promote user to admin |
+| POST | /api/users/admin/demote/:id | Demote admin (safeguards) |
+| GET | /api/cars | List cars |
+| GET | /api/cars/:id | Car detail |
+| POST | /api/cars | Create car (admin, multipart) |
+| DELETE | /api/cars/:id | Delete car (admin) |
+
+## Image Handling
+- Images uploaded via Add Car modal (multipart/form-data)
+- Saved to temp disk via Multer then immediately uploaded to Cloudinary
+- Temp files removed after upload completion (or failure cleanup)
+- Client consumes Cloudinary URLs directly; no local /uploads serving
+
+## Security & Hardening
+- CORS: dynamic origin validation (development defaults + env list)
+- Helmet with CSP updated to allow Cloudinary assets
+- Rate limiting middleware for brute-force mitigation
+- Centralized error handler with Multer-specific handling
+- Admin safeguard: cannot delete/demote last remaining admin
+
+## Logging
+- Development: concise console logs (uploads, env fallbacks)
+- Production: minimal noise; avoid leaking secrets
+- (Future) Consider structured logging (pino/winston)
+
+
+## License
+Internal project (no license specified). Add one if open-sourcing later.
+
+---
+Maintained with care. Update screenshots and demo links after deployment.
