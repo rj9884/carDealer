@@ -5,8 +5,11 @@ import { router } from './routes/routes'
 import axios from 'axios'
 import './index.css'
 
-// Configure axios base URL from environment (fallback to localhost)
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
+// API base must be provided via environment (VITE_API_BASE_URL)
+const API_BASE = import.meta.env.VITE_API_BASE_URL
+if(!API_BASE){
+  console.error('VITE_API_BASE_URL not set');
+}
 axios.defaults.baseURL = API_BASE
 
 ReactDOM.createRoot(document.getElementById('root')).render(

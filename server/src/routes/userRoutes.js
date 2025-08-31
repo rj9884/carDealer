@@ -19,17 +19,7 @@ import upload from '../middlewares/upload.js';
 
 const router = express.Router();
 
-// Route-level CORS assurance (in case global middleware order changes)
-router.use((req, res, next) => {
-  const requestOrigin = req.headers.origin;
-  const allowedOrigins = (process.env.CORS_ORIGIN && process.env.CORS_ORIGIN.split(',').map(o=>o.trim())) || ['http://localhost:5173','http://localhost:5174'];
-  if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
-    res.header('Access-Control-Allow-Origin', requestOrigin);
-    res.header('Vary', 'Origin');
-    res.header('Access-Control-Allow-Credentials', 'true');
-  }
-  next();
-});
+// Rely on global CORS middleware; route-level override removed for production hardening.
 
 router.post('/register', registerUser);
 router.post('/login', loginUser);

@@ -27,6 +27,7 @@ export const SENDER_EMAIL = requireEnv('SENDER_EMAIL');
 export const CLOUDINARY_CLOUD_NAME = requireEnv('CLOUDINARY_CLOUD_NAME');
 export const CLOUDINARY_API_KEY = requireEnv('CLOUDINARY_API_KEY');
 export const CLOUDINARY_API_SECRET = requireEnv('CLOUDINARY_API_SECRET');
+export const FRONTEND_ORIGIN = requireEnv('FRONTEND_ORIGIN');
 
 // Export raw process.env for any remaining edge cases
 export const ENV = process.env;

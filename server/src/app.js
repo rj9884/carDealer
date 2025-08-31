@@ -2,6 +2,7 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import helmet from 'helmet';
+import { FRONTEND_ORIGIN } from './config/env.js';
 import morgan from 'morgan';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -37,22 +38,14 @@ app.use(helmet({
       'img-src': [
         "'self'",
         'data:',
-        'http://localhost:5173',
-        'http://localhost:5174',
+        FRONTEND_ORIGIN,
         'https://res.cloudinary.com'
-      ]
+      ].filter(Boolean)
     }
   }
 }));
 app.use(limiter);
-app.use(morgan(process.env.NODE_ENV === 'development' ? 'dev' : 'combined'));
-
-if (process.env.NODE_ENV === 'development') {
-  app.use((req, _res, next) => {
-    console.log(`${req.method} ${req.path}`);
-    next();
-  });
-}
+app.use(morgan('combined'));
 
 
 app.use(express.json({ limit: '10kb' })); 

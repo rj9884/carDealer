@@ -3,10 +3,10 @@
 Full-stack car dealership platform with user authentication, email verification (OTP), password reset, role-based admin panel, and Cloudinary-backed image management.
 
 ## Live Demo
-- Live URL: https://your-live-demo.example.com (replace with production link)
-- API Base (example): https://api.your-live-demo.example.com
+- Frontend: https://cardealer-frontend-fyyz.onrender.com
+- Backend API: https://cardealer-backend-iu7l.onrender.com
 
-> Update the above links once deployed.
+Environment variables or client config should point to the backend URL above.
 
 ## Screenshots / UI Preview
 Add (or replace) the following paths with real screenshot image links (e.g. GitHub issue attachments or CDN URLs):
@@ -75,7 +75,7 @@ Create `.env` files in `server/` and optionally in `client/` (for Vite: prefix w
 ```
 PORT=5000
 NODE_ENV=development
-MONGODB_URI=mongodb://localhost:27017/carDealer
+MONGODB_URI=your_production_mongodb_connection
 JWT_SECRET=change_me_in_production
 SMTP_USER=your_brevo_user
 SMTP_PASS=your_brevo_pass
@@ -83,7 +83,7 @@ SENDER_EMAIL=car-dealer@example.com
 CLOUDINARY_CLOUD_NAME=xxxx
 CLOUDINARY_API_KEY=xxxx
 CLOUDINARY_API_SECRET=xxxx
-CORS_ORIGINS=http://localhost:5173
+CORS_ORIGINS=https://cardealer-frontend-fyyz.onrender.com
 ```
 `config/env.js` loads these once and exports typed constants. In development a fallback JWT secret is provided with a warning if not set.
 
@@ -105,7 +105,7 @@ npm run dev
 ```
 
 ### 3. Access App
-Visit: http://localhost:5173
+Visit: https://cardealer-frontend-fyyz.onrender.com
 
 ### 4. Creating an Admin
 Register a user, then manually update its role in MongoDB (first admin), after that you can promote/demote through the Admin Panel endpoints.

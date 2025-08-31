@@ -17,20 +17,20 @@ export const validate = (req, res, next) => {
 };
 
 
-const devDefaultOrigins = [
-    'http://localhost:5173',
-    'http://localhost:5174',
-    'http://127.0.0.1:5173',
-    'http://127.0.0.1:5174'
-];
+import { FRONTEND_ORIGIN } from '../config/env.js';
+const productionFrontend = FRONTEND_ORIGIN;
 
 const parsedOrigins = (() => {
     const envList = process.env.CORS_ORIGIN
         ? process.env.CORS_ORIGIN.split(',').map(o => o.trim()).filter(Boolean)
         : [];
-    // Merge without duplicates; always include dev defaults in non-production
-    const base = process.env.NODE_ENV === 'production' ? [] : devDefaultOrigins;
-    return Array.from(new Set([...base, ...envList]));
+    // In production, only allow specified origins (env or designated frontend)
+    if (process.env.NODE_ENV === 'production') {
+        const base = [productionFrontend];
+        return Array.from(new Set([...base, ...envList]));
+    }
+    // In non-production keep env-defined plus production frontend (no localhost defaults anymore)
+    return Array.from(new Set([productionFrontend, ...envList]));
 })();
 
 export const corsOptions = {
