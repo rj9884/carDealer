@@ -19,6 +19,7 @@ Full-stack car dealership platform with user authentication, email verification 
 | Admin Panel (Users) | ![Admin Users](./client/src/assets/admin-users.png) |
 | Add Car Modal | ![Add Car](./client/src/assets/add-car.png) |
 | Profile | ![Profile](./client/src/assets/profile.png) |
+| Car Listing with Pagination | ![Car Listing](./client/src/assets/car-listing.png) |
 
 
 ## Tech Stack
