@@ -4,25 +4,22 @@ Full-stack car dealership platform with user authentication, email verification 
 
 ## Live Demo
 - Frontend: https://cardealer-frontend-fyyz.onrender.com
-- Backend API: https://cardealer-backend-iu7l.onrender.com
+- Backend API: https://cardealer-backend-iu7l.onrender.com/api/health
 
-Environment variables or client config should point to the backend URL above.
 
 ## Screenshots / UI Preview
-Add (or replace) the following paths with real screenshot image links (e.g. GitHub issue attachments or CDN URLs):
 
 | Feature | Screenshot |
 |---------|------------|
-| Home / Listing | ![Home](./docs/screenshots/home.png) |
-| Car Detail | ![Car Detail](./docs/screenshots/detail.png) |
-| Register / Verify Email | ![Verify Email](./docs/screenshots/verify.png) |
-| Login | ![Login](./docs/screenshots/login.png) |
-| Admin Panel (Cars) | ![Admin Cars](./docs/screenshots/admin-cars.png) |
-| Admin Panel (Users) | ![Admin Users](./docs/screenshots/admin-users.png) |
-| Add Car Modal | ![Add Car](./docs/screenshots/add-car.png) |
-| Profile | ![Profile](./docs/screenshots/profile.png) |
+| Home / Listing | ![Home](./client/src/assets/home.png) |
+| Car Detail | ![Car Detail](./client/src/assets/detail.png) |
+| Register / Verify Email | ![Verify Email](./client/src/assets/verify.png) |
+| Login | ![Login](./client/src/assets/login.png) |
+| Admin Panel (Cars) | ![Admin Cars](./client/src/assets/admin-cars.png) |
+| Admin Panel (Users) | ![Admin Users](./client/src/assets/admin-users.png) |
+| Add Car Modal | ![Add Car](./client/src/assets/add-car.png) |
+| Profile | ![Profile](./client/src/assets/profile.png) |
 
-Create a `docs/screenshots` folder and drop images there or link external URLs.
 
 ## Tech Stack
 ### Frontend
@@ -50,14 +47,12 @@ Create a `docs/screenshots` folder and drop images there or link external URLs.
 - Car listing & detail pages using Cloudinary image URLs only
 - Profile management & timestamps (createdAt / updatedAt surfaced)
 - Centralized environment configuration (`server/src/config/env.js`)
-- Removed legacy seeding & local image serving for production parity
 
 ## Project Structure (Top-Level)
 ```
 client/           # React frontend
 server/           # Express API
 README.md         # This file
-IMPLEMENTATION-SUMMARY.md  # Running dev change log / summary
 ```
 
 Notable backend folders:
@@ -73,17 +68,17 @@ server/src/config/env.js
 ## Environment Variables
 Create `.env` files in `server/` and optionally in `client/` (for Vite: prefix with VITE_). Example server `.env`:
 ```
-PORT=5000
-NODE_ENV=development
+PORT=your_port
+NODE_ENV=development/production
 MONGODB_URI=your_production_mongodb_connection
 JWT_SECRET=change_me_in_production
 SMTP_USER=your_brevo_user
 SMTP_PASS=your_brevo_pass
 SENDER_EMAIL=car-dealer@example.com
-CLOUDINARY_CLOUD_NAME=xxxx
-CLOUDINARY_API_KEY=xxxx
-CLOUDINARY_API_SECRET=xxxx
-CORS_ORIGINS=https://cardealer-frontend-fyyz.onrender.com
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+CORS_ORIGINS=your_frontend_origin
 ```
 `config/env.js` loads these once and exports typed constants. In development a fallback JWT secret is provided with a warning if not set.
 
@@ -143,7 +138,6 @@ Register a user, then manually update its role in MongoDB (first admin), after t
 ## Logging
 - Development: concise console logs (uploads, env fallbacks)
 - Production: minimal noise; avoid leaking secrets
-- (Future) Consider structured logging (pino/winston)
 
 
 ## 📄 License
