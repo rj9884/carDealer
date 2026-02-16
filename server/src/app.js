@@ -29,8 +29,8 @@ app.use(cookieParser());
 app.use(cors(corsOptions));
 
 app.use(helmet({
-  crossOriginResourcePolicy: { 
-    policy: 'cross-origin' 
+  crossOriginResourcePolicy: {
+    policy: 'cross-origin'
   },
   contentSecurityPolicy: {
     directives: {
@@ -38,8 +38,8 @@ app.use(helmet({
       'img-src': [
         "'self'",
         'data:',
-        FRONTEND_ORIGIN,
-        'https://res.cloudinary.com'
+        'https://res.cloudinary.com',
+        ...(FRONTEND_ORIGIN ? FRONTEND_ORIGIN.split(',') : [])
       ].filter(Boolean)
     }
   }
@@ -48,13 +48,13 @@ app.use(limiter);
 app.use(morgan('combined'));
 
 
-app.use(express.json({ limit: '10kb' })); 
+app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 
 import { promises as fsp } from 'fs';
 const uploadsDir = path.join(__dirname, 'uploads');
-fsp.stat(uploadsDir).catch(()=> fsp.mkdir(uploadsDir, { recursive: true }).catch(()=>{}));
+fsp.stat(uploadsDir).catch(() => fsp.mkdir(uploadsDir, { recursive: true }).catch(() => { }));
 
 app.use('/api/users', userRoutes);
 app.use('/api/cars', carRoutes);
@@ -71,4 +71,4 @@ app.use(notFound);
 app.use(errorHandler);
 
 
-export {app};
+export { app };

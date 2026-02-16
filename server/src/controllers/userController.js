@@ -1,27 +1,31 @@
 import User from '../models/User.js';
 import { generateToken, setTokenCookie, clearTokenCookie } from '../middlewares/auth.js';
 import { uploadOnCloudinary } from '../utils/cloudinary.js';
-import { 
-  transporter, 
-  MailOptions, 
-  VERIFICATION_TEMPLATE, 
-  PASSWORD_RESET_TEMPLATE, 
-  generateOTP 
+import {
+  transporter,
+  MailOptions,
+  VERIFICATION_TEMPLATE,
+  PASSWORD_RESET_TEMPLATE,
+  generateOTP
 } from '../utils/emailService.js';
 
 
 export const registerUser = async (req, res) => {
   try {
     const { username, email, password, role } = req.body;
+    console.log(`[REGISTER] Starting registration for ${email}`);
 
     const userExists = await User.findOne({ $or: [{ email }, { username }] });
     if (userExists) {
+      console.log(`[REGISTER] User already exists: ${email}`);
       return res.status(400).json({ message: 'User already exists' });
     }
 
     const verificationOtp = generateOTP();
     const verificationOtpExpireAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
+    console.log(`[REGISTER] Creating user document...`);
+    const startTime = Date.now();
     const user = await User.create({
       username,
       email,
@@ -31,6 +35,7 @@ export const registerUser = async (req, res) => {
       verificationOtp,
       verificationOtpExpireAt
     });
+    console.log(`[REGISTER] User created in ${Date.now() - startTime}ms`);
 
     if (user) {
       const emailContent = VERIFICATION_TEMPLATE
@@ -43,11 +48,22 @@ export const registerUser = async (req, res) => {
         html: emailContent
       });
 
-      await transporter.sendMail(mailOptions);
+      console.log(`[REGISTER] Sending verification email...`);
+      const emailStartTime = Date.now();
+      try {
+        await transporter.sendMail(mailOptions);
+        console.log(`[REGISTER] Email sent in ${Date.now() - emailStartTime}ms`);
+      } catch (emailError) {
+        console.error(`[REGISTER] Email sending failed in ${Date.now() - emailStartTime}ms`, emailError);
+        // Clean up the user if email fails, or handle gracefully?
+        // For now, we'll delete the user so they can try again or we should return error.
+        await User.findByIdAndDelete(user._id);
+        return res.status(500).json({ message: 'Failed to send verification email. Please try again.' });
+      }
 
       const token = generateToken(user._id);
       setTokenCookie(res, token);
-      
+
       res.status(201).json({
         _id: user._id,
         username: user.username,
@@ -58,7 +74,7 @@ export const registerUser = async (req, res) => {
       });
     }
   } catch (error) {
-    console.error(error);
+    console.error('[REGISTER] CRITICAL ERROR:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -72,16 +88,16 @@ export const loginUser = async (req, res) => {
 
     if (user && (await user.matchPassword(password))) {
       if (!user.isVerified) {
-        return res.status(401).json({ 
-          message: 'Email not verified', 
-          requiresVerification: true, 
-          email: user.email 
+        return res.status(401).json({
+          message: 'Email not verified',
+          requiresVerification: true,
+          email: user.email
         });
       }
 
       const token = generateToken(user._id);
       setTokenCookie(res, token);
-      
+
       res.json({
         _id: user._id,
         username: user.username,
@@ -232,8 +248,8 @@ export const verifyEmail = async (req, res) => {
       return res.status(400).json({ message: 'Email and OTP are required' });
     }
 
-    const user = await User.findOne({ 
-      email, 
+    const user = await User.findOne({
+      email,
       verificationOtp: otp,
       verificationOtpExpireAt: { $gt: new Date() }
     });
@@ -357,8 +373,8 @@ export const resetPassword = async (req, res) => {
       return res.status(400).json({ message: 'Email, OTP and new password are required' });
     }
 
-    const user = await User.findOne({ 
-      email, 
+    const user = await User.findOne({
+      email,
       resetOtp: otp,
       resetOtpExpireAt: { $gt: new Date() }
     });

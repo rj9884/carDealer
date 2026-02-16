@@ -15,18 +15,19 @@ export const validate = (req, res, next) => {
     next();
 };
 
-const allowedOrigin = (FRONTEND_ORIGIN || '').trim().replace(/\/$/, ''); // strip trailing slash
-if (!allowedOrigin) {
-    throw new Error('[CORS] FRONTEND_ORIGIN is required (exact frontend origin, no trailing slash).');
+const allowedOrigins = (FRONTEND_ORIGIN || '').split(',').map(origin => origin.trim().replace(/\/$/, ''));
+if (allowedOrigins.length === 0 || allowedOrigins.every(o => !o)) {
+    throw new Error('[CORS] FRONTEND_ORIGIN is required (comma-separated if multiple).');
 }
-console.log('[CORS] Allowed origin:', allowedOrigin);
+console.log('[CORS] Allowed origins:', allowedOrigins);
 
 export const corsOptions = {
     origin(origin, callback) {
         if (!origin) return callback(null, true); // non-browser
         const cleaned = origin.replace(/\/$/, '');
-        if (cleaned === allowedOrigin) return callback(null, true);
-        console.warn(`[CORS] Blocked origin: ${origin} (expected: ${allowedOrigin})`);
+        if (allowedOrigins.includes(cleaned)) return callback(null, true);
+
+        console.warn(`[CORS] Blocked origin: ${origin}`);
         return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
