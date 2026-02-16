@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import { motion } from 'framer-motion';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 const ResetPassword = () => {
   const [email, setEmail] = useState('');
@@ -17,7 +19,7 @@ const ResetPassword = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    
+
     try {
       await axios.post('/api/users/request-password-reset', { email });
       setSuccess('Password reset code sent to your email');
@@ -31,22 +33,21 @@ const ResetPassword = () => {
 
   const handleResetPassword = async (e) => {
     e.preventDefault();
-    
+
     if (newPassword !== confirmPassword) {
       setError('Passwords do not match');
       return;
     }
-    
-    setLoading(true);
-    setError('');
-    
+
     try {
+      setLoading(true);
+      setError('');
       await axios.post('/api/users/reset-password', {
         email,
         otp,
         newPassword
       });
-      
+
       setSuccess('Password reset successful!');
       setTimeout(() => {
         navigate('/login');
@@ -59,125 +60,136 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-        <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
-          {step === 1 ? 'Reset Your Password' : 'Enter Reset Code'}
-        </h2>
-      </div>
+    <div className="min-h-screen pt-24 pb-12 flex flex-col items-center justify-center px-6">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md"
+      >
+        <div className="glass-card p-8">
+          <div className="text-center mb-8">
+            <h2 className="heading-lg">
+              {step === 1 ? 'Reset Password' : 'New Password'}
+            </h2>
+            <p className="text-zinc-400">
+              {step === 1
+                ? 'Enter your email to receive a reset code'
+                : 'Enter the code and your new password'
+              }
+            </p>
+          </div>
 
-      <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-        {error && (
-          <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">{error}</div>
-        )}
-        
-        {success && (
-          <div className="mb-4 p-2 bg-green-100 text-green-700 rounded">{success}</div>
-        )}
-        
-        {step === 1 ? (
-          <form className="space-y-6" onSubmit={handleRequestOTP}>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium leading-6 text-gray-900">
-                Email address
-              </label>
-              <div className="mt-2">
+          {error && (
+            <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+              {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="mb-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm">
+              {success}
+            </div>
+          )}
+
+          {step === 1 ? (
+            <form className="space-y-6" onSubmit={handleRequestOTP}>
+              <div>
+                <label htmlFor="email" className="label">
+                  Email address
+                </label>
                 <input
                   id="email"
                   name="email"
                   type="email"
                   autoComplete="email"
                   required
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  className="input-field"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@example.com"
                 />
               </div>
-            </div>
 
-            <div>
               <button
                 type="submit"
                 disabled={loading}
-                className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline-indigo-600"
+                className="btn-primary w-full"
               >
                 {loading ? 'Sending...' : 'Send Reset Code'}
               </button>
-            </div>
-          </form>
-        ) : (
-          <form className="space-y-6" onSubmit={handleResetPassword}>
-            <div>
-              <label htmlFor="otp" className="block text-sm font-medium leading-6 text-gray-900">
-                Reset Code
-              </label>
-              <div className="mt-2">
+            </form>
+          ) : (
+            <form className="space-y-6" onSubmit={handleResetPassword}>
+              <div>
+                <label htmlFor="otp" className="label">
+                  Reset Code
+                </label>
                 <input
                   id="otp"
                   name="otp"
                   type="text"
                   required
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  className="input-field text-center tracking-widest text-lg"
                   value={otp}
                   onChange={(e) => setOtp(e.target.value)}
-                  placeholder="Enter 6-digit code"
+                  placeholder="000000"
+                  maxLength={6}
                 />
               </div>
-            </div>
 
-            <div>
-              <label htmlFor="newPassword" className="block text-sm font-medium leading-6 text-gray-900">
-                New Password
-              </label>
-              <div className="mt-2">
+              <div>
+                <label htmlFor="newPassword" className="label">
+                  New Password
+                </label>
                 <input
                   id="newPassword"
                   name="newPassword"
                   type="password"
                   required
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  className="input-field"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="••••••••"
                 />
               </div>
-            </div>
 
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium leading-6 text-gray-900">
-                Confirm Password
-              </label>
-              <div className="mt-2">
+              <div>
+                <label htmlFor="confirmPassword" className="label">
+                  Confirm Password
+                </label>
                 <input
                   id="confirmPassword"
                   name="confirmPassword"
                   type="password"
                   required
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  className="input-field"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
                 />
               </div>
-            </div>
 
-            <div>
               <button
                 type="submit"
                 disabled={loading}
-                className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline-indigo-600"
+                className="btn-primary w-full"
               >
                 {loading ? 'Resetting...' : 'Reset Password'}
               </button>
-            </div>
-          </form>
-        )}
+            </form>
+          )}
 
-        <p className="mt-10 text-center text-sm text-gray-500">
-          Remember your password?{' '}
-          <a href="/login" className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500">
-            Sign in
-          </a>
-        </p>
-      </div>
+          <div className="mt-8 text-center">
+            <Link
+              to="/login"
+              className="inline-flex items-center text-sm font-medium text-zinc-400 hover:text-white transition-colors"
+            >
+              <ArrowLeftIcon className="w-4 h-4 mr-2" />
+              Back to Login
+            </Link>
+          </div>
+        </div>
+      </motion.div>
     </div>
   );
 };
