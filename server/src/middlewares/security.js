@@ -4,7 +4,12 @@ import { FRONTEND_ORIGIN } from '../config/env.js';
 
 export const limiter = rateLimit({
     windowMs: (Number(process.env.RATE_LIMIT_WINDOW) || 15) * 60 * 1000,
-    max: Number(process.env.RATE_LIMIT_MAX) || 100
+    max: Number(process.env.RATE_LIMIT_MAX) || 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+        message: "Too many requests, please try again later."
+    }
 });
 
 export const validate = (req, res, next) => {

@@ -112,6 +112,10 @@ carSchema.index({ price: 1 });
 carSchema.index({ color: 1 });
 carSchema.index({ fuelType: 1 });
 carSchema.index({ bodyType: 1 });
+carSchema.index({ seller: 1 });
+carSchema.index({ isAvailable: 1 });
+carSchema.index({ isFeatured: 1 });
+carSchema.index({ createdAt: -1 });
 
 const Car = mongoose.model('Car', carSchema);
 
