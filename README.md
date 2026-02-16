@@ -1,153 +1,230 @@
-# Car Dealer Platform
+# CarDekho - Buy & Sell Certified Used Cars
 
-Full-stack car dealership platform with user authentication, email verification (OTP), password reset, role-based admin panel, and Cloudinary-backed image management.
+> **Your trusted partner for buying and selling quality pre-owned vehicles with transparency and ease.**
 
-## Live Demo
-- Frontend: https://cardealer-frontend-fyyz.onrender.com
-- Backend API: https://cardealer-backend-iu7l.onrender.com/api/health
-
-
-## Screenshots / UI Preview
-
-| Feature | Screenshot |
-|---------|------------|
-| Home / Listing | ![Home](./client/src/assets/home.png) |
-| Car Detail | ![Car Detail](./client/src/assets/detail.png) |
-| Register / Verify Email | ![Verify Email](./client/src/assets/verify.png) |
-| Login | ![Login](./client/src/assets/login.png) |
-| Admin Panel (Cars) | ![Admin Cars](./client/src/assets/admin-cars.png) |
-| Admin Panel (Users) | ![Admin Users](./client/src/assets/admin-users.png) |
-| Add Car Modal | ![Add Car](./client/src/assets/add-car.png) |
-| Profile | ![Profile](./client/src/assets/profile.png) |
-| Car Listing with Pagination | ![Car Listing](./client/src/assets/car-listing.png) |
-
-
-## Tech Stack
-### Frontend
-- React 19 + Vite
-- React Router
-- Tailwind CSS utilities (custom classes in `client/src/index.css`)
-- Axios (with credentials)
-- Heroicons
-
-### Backend
-- Node.js / Express 5
-- MongoDB + Mongoose 8
-- JWT auth (httpOnly cookies + Authorization header support)
-- Cloudinary (image hosting)
-- Multer (temp storage only, files deleted after Cloudinary upload)
-- Nodemailer (Brevo SMTP relay) for OTP & password reset
-- Helmet, CORS (dynamic allow-list), rate limiting, security middlewares
-
-## Key Features
-- User registration with email verification (OTP)
-- Secure login + httpOnly cookie token storage
-- Password reset via OTP email
-- Role-based access: admin vs standard user
-- Admin Panel: create/delete cars, manage users, promote/demote admins (with safeguard for last admin)
-- Car listing & detail pages using Cloudinary image URLs only
-- Profile management & timestamps (createdAt / updatedAt surfaced)
-- Centralized environment configuration (`server/src/config/env.js`)
-
-## Project Structure (Top-Level)
-```
-client/           # React frontend
-server/           # Express API
-README.md         # This file
-```
-
-Notable backend folders:
-```
-server/src/controllers
-server/src/middlewares
-server/src/models
-server/src/routes
-server/src/utils
-server/src/config/env.js
-```
-
-## Environment Variables
-Create `.env` files in `server/` and optionally in `client/` (for Vite: prefix with VITE_). Example server `.env`:
-```
-PORT=your_port
-NODE_ENV=development/production
-MONGODB_URI=your_production_mongodb_connection
-JWT_SECRET=change_me_in_production
-SMTP_USER=your_brevo_user
-SMTP_PASS=your_brevo_pass
-SENDER_EMAIL=car-dealer@example.com
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
-CORS_ORIGINS=your_frontend_origin
-```
-`config/env.js` loads these once and exports typed constants. In development a fallback JWT secret is provided with a warning if not set.
-
-## Local Development
-### 1. Install Dependencies
-From both `client` and `server` folders:
-```
-npm install
-```
-
-### 2. Run Dev Servers (two terminals)
-Client (Vite default 5173) and Server (e.g., 5000):
-```
-# In client/
-npm run dev
-
-# In server/
-npm run dev
-```
-
-### 3. Access App
-Visit: https://cardealer-frontend-fyyz.onrender.com
-
-### 4. Creating an Admin
-Register a user, then manually update its role in MongoDB (first admin), after that you can promote/demote through the Admin Panel endpoints.
-
-## API Overview (Selected)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | /api/users/register | Register + send verification OTP |
-| POST | /api/users/login | Login, sets cookie |
-| POST | /api/users/verify-email | Verify OTP |
-| POST | /api/users/forgot-password | Request password reset OTP |
-| POST | /api/users/reset-password | Reset password with OTP |
-| GET | /api/users/profile | Get current user profile |
-| GET | /api/users/admin/status/summary | Admin stats summary |
-| POST | /api/users/admin/promote/:id | Promote user to admin |
-| POST | /api/users/admin/demote/:id | Demote admin (safeguards) |
-| GET | /api/cars | List cars |
-| GET | /api/cars/:id | Car detail |
-| POST | /api/cars | Create car (admin, multipart) |
-| DELETE | /api/cars/:id | Delete car (admin) |
-
-## Image Handling
-- Images uploaded via Add Car modal (multipart/form-data)
-- Saved to temp disk via Multer then immediately uploaded to Cloudinary
-- Temp files removed after upload completion (or failure cleanup)
-- Client consumes Cloudinary URLs directly; no local /uploads serving
-
-## Security & Hardening
-- CORS: dynamic origin validation (development defaults + env list)
-- Helmet with CSP updated to allow Cloudinary assets
-- Rate limiting middleware for brute-force mitigation
-- Centralized error handler with Multer-specific handling
-- Admin safeguard: cannot delete/demote last remaining admin
-
-## Logging
-- Development: concise console logs (uploads, env fallbacks)
-- Production: minimal noise; avoid leaking secrets
-
-
-## 📄 License
-
-This project is licensed under the MIT License.
+CarDekho is a full-stack web application designed to simplify the car buying and selling process. It features a modern, responsive user interface, secure authentication with email verification, and a comprehensive admin panel for managing inventory and users. Whether you're looking for your next dream car or selling your current one, CarDekho provides a seamless experience.
 
 ---
 
-## 💬 Contact
+## 📖 Table of Contents
 
-📧 Email: rj.vidyagyan@gmail.com
-Feel free to reach out for feedback
+- [What Does It Do?](#what-does-it-do)
+- [Key Features](#key-features)
+- [Tech Stack](#tech-stack)
+- [How It Works Under the Hood](#how-it-works-under-the-hood)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+- [Environment Variables](#environment-variables)
+- [Benefits](#benefits)
+- [License](#license)
+
+---
+
+## <a id="what-does-it-do"></a>🎯 What Does It Do?
+
+![Home Page](client/src/assets/home.png)
+
+CarDekho bridges the gap between car sellers and buyers by providing a secure and intuitive platform.
+
+Instead of navigating through unverified listings or dealing with complex paperwork alone, you can:
+
+1.  **Browse Certified Listings**: Filter cars by make, model, price, and condition.
+2.  **Sell Your Car**: Easily upload car details and images to reach potential buyers.
+3.  **Secure Interactions**: All users are verified via email OTP to ensure genuine interactions.
+4.  **Manage Inventory**: Admins have full control over listings and user management to maintain platform quality.
+
+---
+
+## <a id="key-features"></a>✨ Key Features
+
+### 🔐 Authentication & Security
+- **Secure Sign-Up**: User registration with **OTP email verification** (via Brevo).
+- **Password Safety**: Forgot-password flow with OTP verification.
+- **Session Management**: **JWT-based authentication** stored in httpOnly cookies for maximum security.
+- **Role-Based Access**: Specialized dashboards for **Admins** vs. **Clients**.
+
+### 🚗 Car Management
+![Car Detail](client/src/assets/detail.png)
+- **Advanced Search**: Full-text search across make, model, and description.
+- **Smart Filters**: Filter by price range, body type, fuel type, and condition.
+- **Rich Media**: High-quality image galleries for every vehicle (powered by Cloudinary).
+- **Detailed Specs**: Comprehensive vehicle specifications at a glance.
+
+### 🛠 Admin Panel
+![Admin Panel](client/src/assets/admin-cars.png)
+- **Dashboard Stats**: Real-time overview of total users, cars, and inventory value.
+- **User Management**: View and remove users (with safeguards for admin accounts).
+- **Inventory Control**: Create, update, or remove car listings directly.
+
+### 👤 User Profile
+- **Personalized Space**: Update your profile details and profile picture.
+- **Verification Status**: Visual indicators for verified accounts.
+
+### 🎨 Modern UI / UX
+- **Responsive Design**: Mobile-first architecture using **Tailwind CSS 4**.
+- **Smooth Animations**: Page transitions and interactive elements powered by **Framer Motion**.
+- **Dark Theme**: Sleek, professional aesthetic with a custom charcoal and slate palette.
+
+---
+
+## <a id="tech-stack"></a>🛠 Tech Stack
+
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **Frontend Framework** | React 19 | Component-based UI architecture |
+| **Build Tool** | Vite 7 | Lightning-fast development and build bundling |
+| **Styling** | Tailwind CSS 4 | Utility-first styling with custom theme config |
+| **Animations** | Framer Motion | Complex UI transitions and micro-interactions |
+| **Backend Runtime** | Node.js | Scalable server-side JavaScript environment |
+| **API Framework** | Express 5 | RESTful API routing and middleware management |
+| **Database** | MongoDB + Mongoose 8 | NoSQL database for flexible data modeling |
+| **Authentication** | JWT + bcryptjs | Stateless, secure authentication |
+| **Image Storage** | Cloudinary | Cloud-based image optimization and delivery |
+| **Email Service** | Nodemailer + Brevo | Reliable transactional email delivery (OTP) |
+
+---
+
+## <a id="how-it-works-under-the-hood"></a>⚙️ How It Works Under the Hood
+
+### 1. Authentication Flow
+```
+User Registers
+    ↓
+Server generates 6-digit OTP & hashes password
+    ↓
+OTP sent via Email (Brevo)
+    ↓
+User enters OTP → Account Verified
+    ↓
+Login → Server issues JWT (httpOnly cookie)
+```
+
+### 2. Image Upload Pipeline
+```
+User uploads images (Frontend)
+    ↓
+Request sent to Server (multipart/form-data)
+    ↓
+Multer middleware saves to temp disk
+    ↓
+Cloudinary utility uploads file -> Gets URL
+    ↓
+Temp file deleted from disk
+    ↓
+Cloudinary URL saved to MongoDB
+```
+
+---
+
+## <a id="project-structure"></a>📁 Project Structure
+
+```
+CarDekho/
+├── client/                         # React Frontend
+│   ├── src/
+│   │   ├── components/             # Reusable UI (Navbar, Cards, Modals)
+│   │   ├── pages/                  # Page Views (Home, Listing, Admin)
+│   │   ├── context/                # Global State (Auth)
+│   │   └── ...
+│   └── ...
+│
+├── server/                         # Express Backend
+│   ├── src/
+│   │   ├── controllers/            # Route Logic
+│   │   ├── models/                 # Mongoose Schemas (User, Car)
+│   │   ├── routes/                 # API Endpoints
+│   │   ├── utils/                  # Helpers (Cloudinary, Email)
+│   │   └── ...
+│   └── ...
+│
+└── README.md                       # Documentation
+```
+
+---
+
+## <a id="getting-started"></a>🚀 Getting Started
+
+### Prerequisites
+- **Node.js** (v18+)
+- **MongoDB** (Local or Atlas)
+- **Cloudinary Account**
+- **Brevo Account** (for SMTP)
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/<your-username>/CarDekho.git
+cd CarDekho
+```
+
+### 2. Install Dependencies
+```bash
+# Install Server Deps
+cd server && npm install
+
+# Install Client Deps
+cd ../client && npm install
+```
+
+### 3. Run Application
+Open two terminals:
+
+**Terminal 1 (Backend)**
+```bash
+cd server
+npm run dev
+```
+
+**Terminal 2 (Frontend)**
+```bash
+cd client
+npm run dev
+```
+
+Visit **http://localhost:5173** to view the app.
+
+---
+
+## <a id="environment-variables"></a>🌍 Environment Variables
+
+Create `.env` files in `server/` and `client/`:
+
+**Server (`server/.env`)**
+```env
+PORT=5000
+MONGODB_URI=mongodb+srv://...
+JWT_SECRET=your_secret
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+SMTP_USER=...
+SMTP_PASS=...
+FRONTEND_ORIGIN=http://localhost:5173
+```
+
+**Client (`client/.env`)**
+```env
+VITE_API_BASE_URL=http://localhost:5000
+```
+
+---
+
+## <a id="benefits"></a>🌟 Benefits
+
+-   **Transparency**: Detailed listings and verified users build trust.
+-   **Security**: Robust data protection and secure authentication flows.
+-   **Performance**: Optimized assets and fast response times.
+-   **Scalability**: Built on a MERN stack designed to grow.
+
+---
+
+## <a id="license"></a>📜 License
+
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
+
+---
+
+## � Acknowledgments
+
+-   **Cloudinary** — For seamless image management.
+-   **Brevo** — For reliable email delivery services.
+-   **Tailwind CSS** — For the rapid UI development framework.
