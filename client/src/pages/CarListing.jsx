@@ -1,20 +1,24 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
 import axios from 'axios'
-import { 
-  MagnifyingGlassIcon, 
+import { motion, AnimatePresence } from 'framer-motion'
+import {
+  MagnifyingGlassIcon,
   FunnelIcon,
+  XMarkIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  AdjustmentsHorizontalIcon
 } from '@heroicons/react/24/outline'
+import CarCard from '../components/CarCard'
+import Select from '../components/Select'
 
 const CarListing = () => {
   const [cars, setCars] = useState([])
   const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState({
-    color: '',
     minPrice: '',
     maxPrice: '',
     make: '',
-    fuelType: '',
     bodyType: '',
     condition: ''
   })
@@ -27,20 +31,25 @@ const CarListing = () => {
   })
   const [searchQuery, setSearchQuery] = useState('')
   const [showFilters, setShowFilters] = useState(false)
+  const [allowOverflow, setAllowOverflow] = useState(false)
 
   useEffect(() => {
     fetchCars()
   }, [filters, pagination.currentPage])
+
+  useEffect(() => {
+    if (!showFilters) setAllowOverflow(false)
+  }, [showFilters])
 
   const fetchCars = async () => {
     try {
       setLoading(true)
       const params = new URLSearchParams({
         page: pagination.currentPage,
-        limit: 6,
+        limit: 9,
         ...filters
       })
-      
+
       const response = await axios.get(`/api/cars?${params}`)
       setCars(response.data.cars)
       setPagination(response.data.pagination)
@@ -60,9 +69,17 @@ const CarListing = () => {
     setPagination(prev => ({ ...prev, currentPage: 1 }))
   }
 
+  const handleSelectChange = (name, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [name]: value
+    }))
+    setPagination(prev => ({ ...prev, currentPage: 1 }))
+  }
+
   const handleSearch = async () => {
     if (!searchQuery.trim()) return
-    
+
     try {
       setLoading(true)
       const response = await axios.get(`/api/cars/search?q=${searchQuery}`)
@@ -83,11 +100,9 @@ const CarListing = () => {
 
   const clearFilters = () => {
     setFilters({
-      color: '',
       minPrice: '',
       maxPrice: '',
       make: '',
-      fuelType: '',
       bodyType: '',
       condition: ''
     })
@@ -97,309 +112,212 @@ const CarListing = () => {
 
   const goToPage = (page) => {
     setPagination(prev => ({ ...prev, currentPage: page }))
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="text-center py-12 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-3xl">
-        <h1 className="text-5xl font-bold text-gray-900 mb-4">Browse Cars</h1>
-        <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-          Discover our extensive collection of quality vehicles
-        </p>
-        <button
-          onClick={() => setShowFilters(!showFilters)}
-          className="mt-6 flex items-center space-x-2 bg-white text-gray-700 px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 transform mx-auto"
-        >
-          <FunnelIcon className="w-5 h-5" />
-          <span>{showFilters ? 'Hide' : 'Show'} Filters</span>
-        </button>
-      </div>
-
-      {/* Search Bar */}
-      <div className="flex gap-3">
-        <div className="flex-1 relative">
-          <input
-            type="text"
-            placeholder="Search cars by make, model, or features..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-6 py-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg shadow-sm hover:shadow-md transition-all duration-300"
-            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-          />
-          <button
-            onClick={handleSearch}
-            className="absolute inset-y-0 right-0 pr-6 flex items-center text-gray-400 hover:text-blue-600 transition-colors"
-          >
-            <MagnifyingGlassIcon className="w-6 h-6" />
-          </button>
-        </div>
-        {searchQuery && (
-          <button
-            onClick={() => {
-              setSearchQuery('')
-              fetchCars()
-            }}
-            className="px-6 py-4 bg-gray-100 text-gray-700 rounded-2xl font-semibold hover:bg-gray-200 transition-all duration-300 hover:scale-105 transform"
-          >
-            Clear
-          </button>
-        )}
-      </div>
-
-      {/* Filters */}
-      {showFilters && (
-        <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
-          <h3 className="text-2xl font-bold mb-6 text-gray-900">Filters</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">Color</label>
-              <input
-                type="text"
-                name="color"
-                value={filters.color}
-                onChange={handleFilterChange}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                placeholder="e.g., Red, Blue"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">Min Price</label>
-              <input
-                type="number"
-                name="minPrice"
-                value={filters.minPrice}
-                onChange={handleFilterChange}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                placeholder="0"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">Max Price</label>
-              <input
-                type="number"
-                name="maxPrice"
-                value={filters.maxPrice}
-                onChange={handleFilterChange}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                placeholder="100000"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">Make</label>
-              <input
-                type="text"
-                name="make"
-                value={filters.make}
-                onChange={handleFilterChange}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-                placeholder="e.g., Toyota, BMW"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">Fuel Type</label>
-              <select
-                name="fuelType"
-                value={filters.fuelType}
-                onChange={handleFilterChange}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-              >
-                <option value="">All</option>
-                <option value="Petrol">Petrol</option>
-                <option value="Diesel">Diesel</option>
-                <option value="Electric">Electric</option>
-                <option value="Hybrid">Hybrid</option>
-                <option value="LPG">LPG</option>
-                <option value="CNG">CNG</option>
-              </select>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">Body Type</label>
-              <select
-                name="bodyType"
-                value={filters.bodyType}
-                onChange={handleFilterChange}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-              >
-                <option value="">All</option>
-                <option value="Sedan">Sedan</option>
-                <option value="SUV">SUV</option>
-                <option value="Hatchback">Hatchback</option>
-                <option value="Coupe">Coupe</option>
-                <option value="Convertible">Convertible</option>
-                <option value="Wagon">Wagon</option>
-                <option value="Pickup">Pickup</option>
-                <option value="Van">Van</option>
-              </select>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">Condition</label>
-              <select
-                name="condition"
-                value={filters.condition}
-                onChange={handleFilterChange}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-              >
-                <option value="">All</option>
-                <option value="Excellent">Excellent</option>
-                <option value="Good">Good</option>
-                <option value="Fair">Fair</option>
-                <option value="Poor">Poor</option>
-              </select>
-            </div>
-            
-            <div className="flex items-end">
-              <button
-                onClick={clearFilters}
-                className="w-full px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-all duration-300 hover:scale-105 transform"
-              >
-                Clear Filters
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Results Count */}
-      <div className="flex items-center justify-between bg-white rounded-2xl px-6 py-4 shadow-sm border border-gray-100">
-        <p className="text-gray-600 font-medium">
-          Showing {cars.length} of {pagination.totalCars} cars
-        </p>
-        {pagination.totalPages > 1 && (
-          <p className="text-gray-600 font-medium">
-            Page {pagination.currentPage} of {pagination.totalPages}
+    <div className="min-h-screen pt-24 pb-12 px-4 md:px-8 max-w-7xl mx-auto">
+      {/* Header & Controls */}
+      <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+        <div>
+          <h1 className="text-4xl font-bold text-white mb-2">Inventory</h1>
+          <p className="text-zinc-400">
+            Showing {cars.length} of {pagination.totalCars} premium vehicles
           </p>
-        )}
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+          {/* Search */}
+          <div className="relative group">
+            <input
+              type="text"
+              placeholder="Search collection..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+              className="w-full sm:w-80 bg-zinc-900 border border-zinc-800 text-white rounded-full py-3 px-5 pl-11 focus:border-zinc-600 focus:outline-none focus:ring-1 focus:ring-zinc-600 transition-all"
+            />
+            <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500 group-focus-within:text-white transition-colors" />
+
+            {searchQuery && (
+              <button
+                onClick={() => {
+                  setSearchQuery('')
+                  fetchCars()
+                }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white"
+              >
+                <XMarkIcon className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          {/* Filter Toggle */}
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`flex items-center justify-center gap-2 px-6 py-3 rounded-full border transition-all ${showFilters
+              ? 'bg-white text-black border-white'
+              : 'bg-zinc-900 text-zinc-300 border-zinc-800 hover:border-zinc-600 hover:text-white'
+              }`}
+          >
+            <AdjustmentsHorizontalIcon className="w-5 h-5" />
+            <span>Filters</span>
+          </button>
+        </div>
       </div>
 
-      {/* Cars Grid */}
-      {loading ? (
-        <div className="flex justify-center py-20">
-          <div className="animate-spin rounded-full h-20 w-20 border-4 border-blue-200 border-t-blue-600"></div>
-        </div>
-      ) : cars.length === 0 ? (
-        <div className="text-center py-20">
-          <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <span className="text-4xl">🔍</span>
-          </div>
-          <p className="text-gray-500 text-xl mb-2">No cars found</p>
-          <p className="text-gray-400">Try adjusting your filters or search criteria</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {cars.map((car) => (
-            <div key={car._id} className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 overflow-hidden border border-gray-100">
-              <div className="aspect-video bg-gray-100 flex items-center justify-center overflow-hidden">
-                {car.images && car.images.length > 0 ? (
-                  <img 
-                    src={car.images[0]}
-                    alt={`${car.make} ${car.model}`}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    onError={(e) => {
-                      console.error(`Failed to load image: ${e.target.src}`);
-                      // Remove onError to prevent infinite loops
-                      e.target.onerror = null;
-                      // Use a simpler fallback without SVG
-                      e.target.src = '/car_icon.svg';
-                      // Add a class to indicate error state
-                      e.target.classList.add('image-load-error');
-                    }}
-                  />
-                ) : (
-                  <div className="text-gray-400 text-center">
-                    <p>No Image</p>
-                  </div>
-                )}
+      {/* Filters Panel */}
+      <AnimatePresence>
+        {showFilters && (
+          <motion.div
+            initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+            animate={{ opacity: 1, height: 'auto', marginBottom: 48 }}
+            exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+            onAnimationComplete={() => setAllowOverflow(true)}
+            className={allowOverflow ? "overflow-visible" : "overflow-hidden"}
+          >
+            <div className="bg-zinc-900/50 border border-zinc-800 rounded-3xl p-8 backdrop-blur-sm">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-semibold text-white">Refine Search</h3>
+                <button
+                  onClick={clearFilters}
+                  className="text-sm text-zinc-400 hover:text-white transition-colors hover:underline"
+                >
+                  Reset All
+                </button>
               </div>
-              <div className="p-8">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-2xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-                    {car.make} {car.model}
-                  </h3>
-                  <span className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-indigo-600 text-transparent bg-clip-text">
-                    ₹{car.price.toLocaleString()}
-                  </span>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-wider text-zinc-500 font-semibold">Make</label>
+                  <input
+                    type="text"
+                    name="make"
+                    value={filters.make}
+                    onChange={handleFilterChange}
+                    className="input-field rounded-full"
+                    placeholder="e.g. Porsche"
+                  />
                 </div>
-                
-                <div className="flex items-center space-x-6 text-sm text-gray-600 mb-6">
-                  <span className="flex items-center space-x-1">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                    {car.year}
-                  </span>
-                  <span className="flex items-center space-x-1">
-                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                    {car.mileage.toLocaleString()} miles
-                  </span>
-                  <span className="flex items-center space-x-1">
-                    <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-                    {car.location}
-                  </span>
+
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-wider text-zinc-500 font-semibold">Price Range (₹)</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      name="minPrice"
+                      value={filters.minPrice}
+                      onChange={handleFilterChange}
+                      className="input-field rounded-full"
+                      placeholder="Min"
+                    />
+                    <input
+                      type="number"
+                      name="maxPrice"
+                      value={filters.maxPrice}
+                      onChange={handleFilterChange}
+                      className="input-field rounded-full"
+                      placeholder="Max"
+                    />
+                  </div>
                 </div>
-                
-                <p className="text-gray-600 mb-6 line-clamp-2 leading-relaxed">
-                  {car.description}
-                </p>
-                
-                <div className="flex items-center justify-between">
-                  <span className={`px-4 py-2 rounded-full text-sm font-semibold ${
-                    car.condition === 'Excellent' ? 'bg-green-100 text-green-800 border border-green-200' :
-                    car.condition === 'Good' ? 'bg-blue-100 text-blue-800 border border-blue-200' :
-                    car.condition === 'Fair' ? 'bg-yellow-100 text-yellow-800 border border-yellow-200' :
-                    'bg-red-100 text-red-800 border border-red-200'
-                  }`}>
-                    {car.condition}
-                  </span>
-                  <Link 
-                    to={`/cars/${car._id}`}
-                    className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 hover:scale-105 transform"
-                  >
-                    View Details
-                  </Link>
+
+                <div className="space-y-2">
+                  <Select
+                    label="Body Type"
+                    value={filters.bodyType}
+                    onChange={(val) => handleSelectChange('bodyType', val)}
+                    placeholder="All Types"
+                    options={[
+                      { value: '', label: 'All Types' },
+                      { value: 'Sedan', label: 'Sedan' },
+                      { value: 'SUV', label: 'SUV' },
+                      { value: 'Coupe', label: 'Coupe' },
+                      { value: 'Convertible', label: 'Convertible' },
+                      { value: 'Sports', label: 'Sports' }
+                    ]}
+                  />
                 </div>
+
+                <div className="space-y-2">
+                  <Select
+                    label="Condition"
+                    value={filters.condition}
+                    onChange={(val) => handleSelectChange('condition', val)}
+                    placeholder="All Conditions"
+                    options={[
+                      { value: '', label: 'All Conditions' },
+                      { value: 'Excellent', label: 'Excellent' },
+                      { value: 'Good', label: 'Good' },
+                      { value: 'Like New', label: 'Like New' }
+                    ]}
+                  />
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Grid */}
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="bg-zinc-900 h-[420px] rounded-2xl animate-pulse">
+              <div className="h-[280px] bg-zinc-800 rounded-t-2xl" />
+              <div className="p-5 space-y-4">
+                <div className="h-6 bg-zinc-800 rounded w-3/4" />
+                <div className="h-4 bg-zinc-800 rounded w-1/2" />
               </div>
             </div>
           ))}
+        </div>
+      ) : cars.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {cars.map((car) => (
+            <CarCard key={car._id} car={car} />
+          ))}
+        </div>
+      ) : (
+        <div className="py-32 text-center">
+          <MagnifyingGlassIcon className="w-16 h-16 text-zinc-800 mx-auto mb-6" />
+          <h3 className="text-2xl font-bold text-white mb-2">No vehicles found</h3>
+          <p className="text-zinc-500">
+            Your search did not match any vehicles. Try different keywords or filters.
+          </p>
+          <button
+            onClick={clearFilters}
+            className="mt-6 text-white hover:underline"
+          >
+            Clear all filters
+          </button>
         </div>
       )}
 
       {/* Pagination */}
       {pagination.totalPages > 1 && (
-        <div className="flex items-center justify-center space-x-3 bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-          <button
-            onClick={() => goToPage(pagination.currentPage - 1)}
-            disabled={!pagination.hasPrevPage}
-            className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-all duration-300 hover:scale-105 transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-          >
-            Previous
-          </button>
-          
-          {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
+        <div className="flex justify-center mt-20">
+          <div className="flex items-center gap-2">
             <button
-              key={page}
-              onClick={() => goToPage(page)}
-              className={`px-4 py-3 rounded-xl font-semibold transition-all duration-300 hover:scale-105 transform ${
-                page === pagination.currentPage
-                  ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              onClick={() => goToPage(pagination.currentPage - 1)}
+              disabled={!pagination.hasPrevPage}
+              className="p-3 rounded-full hover:bg-zinc-900 text-zinc-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
-              {page}
+              <ChevronLeftIcon className="w-5 h-5" />
             </button>
-          ))}
-          
-          <button
-            onClick={() => goToPage(pagination.currentPage + 1)}
-            disabled={!pagination.hasNextPage}
-            className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-all duration-300 hover:scale-105 transform disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-          >
-            Next
-          </button>
+
+            <div className="px-6 py-2 bg-zinc-900 border border-zinc-800 rounded-full font-medium text-zinc-300">
+              Page {pagination.currentPage} of {pagination.totalPages}
+            </div>
+
+            <button
+              onClick={() => goToPage(pagination.currentPage + 1)}
+              disabled={!pagination.hasNextPage}
+              className="p-3 rounded-full hover:bg-zinc-900 text-zinc-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronRightIcon className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       )}
     </div>
