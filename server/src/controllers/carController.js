@@ -35,7 +35,7 @@ const deleteImagesFromCloudinary = async (imageUrls) => {
 export const getCars = async (req, res) => {
   try {
     const page = Math.max(parseInt(req.query.page) || 1, 1);
-    const limit = Math.min(parseInt(req.query.limit) || 5, 100); // hard cap at 100
+    const limit = Math.min(parseInt(req.query.limit) || 5, 100);
     const skip = (page - 1) * limit;
 
     const filter = {};

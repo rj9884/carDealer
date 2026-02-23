@@ -2,11 +2,9 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import { JWT_SECRET } from '../config/env.js';
 
-// ── Auth cache ────────────────────────────────────────────────────────────────
-// Avoids a DB hit on every authenticated request. Entries expire after 60 s.
 const USER_CACHE_TTL_MS = 60 * 1000;
 const USER_CACHE_MAX = 500;
-const userCache = new Map(); // id → { user, cachedAt }
+const userCache = new Map();
 
 const getCachedUser = (id) => {
   const entry = userCache.get(id);
@@ -20,19 +18,16 @@ const getCachedUser = (id) => {
 
 const setCachedUser = (id, user) => {
   if (userCache.size >= USER_CACHE_MAX) {
-    // Evict the oldest entry
     userCache.delete(userCache.keys().next().value);
   }
   userCache.set(id, { user, cachedAt: Date.now() });
 };
 
 export const invalidateUserCache = (id) => userCache.delete(String(id));
-// ─────────────────────────────────────────────────────────────────────────────
 
 export const protect = async (req, res, next) => {
   let token;
 
-  // Check for token in cookies first, then in Authorization header
   if (req.cookies.jwt) {
     token = req.cookies.jwt;
   } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
@@ -83,11 +78,11 @@ export const generateToken = (id) => {
 
 export const setTokenCookie = (res, token) => {
   const cookieOptions = {
-    expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+    expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
-    path: '/', // Cookie available across the site
+    path: '/',
   };
 
   res.cookie('jwt', token, cookieOptions);
@@ -95,7 +90,7 @@ export const setTokenCookie = (res, token) => {
 
 export const clearTokenCookie = (res) => {
   res.cookie('jwt', '', {
-    expires: new Date(0), // Expires immediately
+    expires: new Date(0),
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',

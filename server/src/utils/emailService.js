@@ -1,16 +1,9 @@
 import { SENDER_EMAIL, BREVO_API_KEY } from '../config/env.js';
 
-// ── Brevo REST API — uses HTTPS (port 443), never blocked by Render free tier.
 const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
 
-/**
- * Sends an email via Brevo's transactional REST API.
- * Throws on failure so callers can catch and return 500.
- */
 const sendEmail = async ({ to, subject, html }) => {
-    if (!BREVO_API_KEY) {
-        throw new Error('SMTP_PASS (Brevo API key) is not configured.');
-    }
+    if (!BREVO_API_KEY) throw new Error('BREVO_API_KEY is not configured.');
 
     const payload = {
         sender: { name: 'Car Dealership', email: SENDER_EMAIL },
@@ -37,8 +30,6 @@ const sendEmail = async ({ to, subject, html }) => {
     return response;
 };
 
-// ── Compatibility shim — keeps the same interface used by userController.js ──
-// transporter.sendMail({ to, subject, html }) mirrors the nodemailer API shape.
 const transporter = {
     sendMail: ({ to, subject, html }) => sendEmail({ to, subject, html }),
 };
@@ -53,14 +44,11 @@ class MailOptions {
     }
 }
 
-// Verify API key presence on startup
 if (!BREVO_API_KEY) {
-    console.error('[Email] BREVO_API_KEY is NOT SET — emails will fail.');
+    console.error('[Email] BREVO_API_KEY is not set.');
 } else {
-    console.log('[Email] Brevo REST API configured (HTTPS, port 443). API key present.');
+    console.log('[Email] Brevo API ready.');
 }
-
-// ── Email templates ───────────────────────────────────────────────────────────
 
 const VERIFICATION_TEMPLATE = `
 <!DOCTYPE html>

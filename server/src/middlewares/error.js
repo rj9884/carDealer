@@ -17,7 +17,6 @@ export const errorHandler = (err, req, res, next) => {
 
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
 
-  // Always log on server — stack is hidden from the client response in production
   console.error(`[ERROR] ${req.method} ${req.originalUrl} →`, err);
 
   res.status(statusCode).json({
