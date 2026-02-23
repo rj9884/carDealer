@@ -2,6 +2,15 @@ import Car from '../models/Car.js';
 import { uploadOnCloudinary } from '../utils/cloudinary.js';
 import { v2 as cloudinary } from 'cloudinary';
 
+const handleError = (res, error) => {
+  if (error.name === 'ValidationError') {
+    const message = Object.values(error.errors).map(e => e.message).join(', ');
+    return res.status(400).json({ message });
+  }
+  console.error(error);
+  return res.status(500).json({ message: 'Server error' });
+};
+
 const extractPublicIdFromUrl = (url) => {
   if (!url || typeof url !== 'string') return null;
 
@@ -88,7 +97,7 @@ export const getCars = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    return handleError(res, error);
   }
 };
 
@@ -104,7 +113,7 @@ export const getCarById = async (req, res) => {
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    return handleError(res, error);
   }
 };
 
@@ -138,7 +147,7 @@ export const createCar = async (req, res) => {
     res.status(201).json(createdCar);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    return handleError(res, error);
   }
 };
 
@@ -189,7 +198,7 @@ export const updateCar = async (req, res) => {
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    return handleError(res, error);
   }
 };
 
@@ -216,7 +225,7 @@ export const deleteCar = async (req, res) => {
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    return handleError(res, error);
   }
 };
 
@@ -230,7 +239,7 @@ export const getFeaturedCars = async (req, res) => {
     res.json(featuredCars || []);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    return handleError(res, error);
   }
 };
 
@@ -261,7 +270,7 @@ export const searchCars = async (req, res) => {
     res.json(cars);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    return handleError(res, error);
   }
 };
 
@@ -305,6 +314,6 @@ export const removeCarImages = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    return handleError(res, error);
   }
 };

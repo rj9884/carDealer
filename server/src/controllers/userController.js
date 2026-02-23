@@ -9,6 +9,14 @@ import {
   generateOTP
 } from '../utils/emailService.js';
 
+const handleError = (res, error) => {
+  if (error.name === 'ValidationError') {
+    const message = Object.values(error.errors).map(e => e.message).join(', ');
+    return res.status(400).json({ message });
+  }
+  console.error(error);
+  return res.status(500).json({ message: 'Server error' });
+};
 
 export const registerUser = async (req, res) => {
   try {
@@ -73,7 +81,7 @@ export const registerUser = async (req, res) => {
     }
   } catch (error) {
     console.error('[REGISTER] CRITICAL ERROR:', error);
-    res.status(500).json({ message: 'Server error' });
+    return handleError(res, error);
   }
 };
 
@@ -112,7 +120,7 @@ export const loginUser = async (req, res) => {
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    return handleError(res, error);
   }
 };
 
@@ -137,7 +145,7 @@ export const getUserProfile = async (req, res) => {
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    return handleError(res, error);
   }
 };
 
@@ -198,7 +206,7 @@ export const getUsers = async (req, res) => {
     res.json({ users, total, page, pages: Math.ceil(total / limit) });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    return handleError(res, error);
   }
 };
 
@@ -210,7 +218,7 @@ export const logoutUser = async (req, res) => {
     res.json({ message: 'Logged out successfully' });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    return handleError(res, error);
   }
 };
 
@@ -234,7 +242,7 @@ export const deleteUser = async (req, res) => {
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    return handleError(res, error);
   }
 };
 
@@ -275,7 +283,7 @@ export const verifyEmail = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    return handleError(res, error);
   }
 };
 
@@ -324,7 +332,7 @@ export const resendVerificationOtp = async (req, res) => {
     res.json({ message: 'Verification OTP sent successfully' });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    return handleError(res, error);
   }
 };
 
@@ -369,7 +377,7 @@ export const requestPasswordReset = async (req, res) => {
     res.json({ message: 'Password reset OTP sent successfully' });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    return handleError(res, error);
   }
 };
 
@@ -399,6 +407,6 @@ export const resetPassword = async (req, res) => {
     res.json({ message: 'Password reset successfully' });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    return handleError(res, error);
   }
 };
