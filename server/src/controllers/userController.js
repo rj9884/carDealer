@@ -55,8 +55,6 @@ export const registerUser = async (req, res) => {
         console.log(`[REGISTER] Email sent in ${Date.now() - emailStartTime}ms`);
       } catch (emailError) {
         console.error(`[REGISTER] Email sending failed in ${Date.now() - emailStartTime}ms`, emailError);
-        // Clean up the user if email fails, or handle gracefully?
-        // For now, we'll delete the user so they can try again or we should return error.
         await User.findByIdAndDelete(user._id);
         return res.status(500).json({ message: 'Failed to send verification email. Please try again.' });
       }

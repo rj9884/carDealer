@@ -1,28 +1,67 @@
-import nodemailer from 'nodemailer';
-import { SMTP_USER, SMTP_PASS, SENDER_EMAIL } from '../config/env.js';
+import { SENDER_EMAIL, BREVO_API_KEY } from '../config/env.js';
 
-const transporter = nodemailer.createTransport({
-    host: "smtp.brevo.com",   // smtp-relay requires whitelisted IPs; smtp.brevo.com uses API key only
-    port: 587,
-    secure: false,            // STARTTLS on port 587
-    requireTLS: true,
-    auth: {
-        user: SMTP_USER,
-        pass: SMTP_PASS,
+// ── Brevo REST API — uses HTTPS (port 443), never blocked by Render free tier.
+const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
+
+/**
+ * Sends an email via Brevo's transactional REST API.
+ * Throws on failure so callers can catch and return 500.
+ */
+const sendEmail = async ({ to, subject, html }) => {
+    if (!BREVO_API_KEY) {
+        throw new Error('SMTP_PASS (Brevo API key) is not configured.');
     }
-});
+
+    const payload = {
+        sender: { name: 'Car Dealership', email: SENDER_EMAIL },
+        to: [{ email: to }],
+        subject,
+        htmlContent: html,
+    };
+
+    const response = await fetch(BREVO_API_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'api-key': BREVO_API_KEY,
+        },
+        body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+        const body = await response.text();
+        throw new Error(`Brevo API ${response.status}: ${body}`);
+    }
+
+    console.log(`[Email] Sent to ${to} via Brevo API`);
+    return response;
+};
+
+// ── Compatibility shim — keeps the same interface used by userController.js ──
+// transporter.sendMail({ to, subject, html }) mirrors the nodemailer API shape.
+const transporter = {
+    sendMail: ({ to, subject, html }) => sendEmail({ to, subject, html }),
+};
 
 class MailOptions {
     constructor({ to, text, html, from = SENDER_EMAIL, subject }) {
         this.from = from;
         this.to = to;
         this.subject = subject || `Car Dealership Notification`;
-        this.text = text || "Welcome to Car Dealership";
-        this.html = html || "";
+        this.text = text || 'Welcome to Car Dealership';
+        this.html = html || '';
     }
 }
 
-// Email templates
+// Verify API key presence on startup
+if (!BREVO_API_KEY) {
+    console.error('[Email] BREVO_API_KEY is NOT SET — emails will fail.');
+} else {
+    console.log('[Email] Brevo REST API configured (HTTPS, port 443). API key present.');
+}
+
+// ── Email templates ───────────────────────────────────────────────────────────
+
 const VERIFICATION_TEMPLATE = `
 <!DOCTYPE html>
 <html>

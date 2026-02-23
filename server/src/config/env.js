@@ -24,6 +24,7 @@ export const MONGODB_URI = requireEnv('MONGODB_URI', { required: true });
 export const SMTP_USER = requireEnv('SMTP_USER');
 export const SMTP_PASS = requireEnv('SMTP_PASS');
 export const SENDER_EMAIL = requireEnv('SENDER_EMAIL');
+export const BREVO_API_KEY = requireEnv('BREVO_API_KEY');
 export const CLOUDINARY_CLOUD_NAME = requireEnv('CLOUDINARY_CLOUD_NAME');
 export const CLOUDINARY_API_KEY = requireEnv('CLOUDINARY_API_KEY');
 export const CLOUDINARY_API_SECRET = requireEnv('CLOUDINARY_API_SECRET');
