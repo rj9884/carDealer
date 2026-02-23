@@ -40,7 +40,7 @@ const userSchema = new mongoose.Schema({
   },
   resetOtpExpireAt: {
     type: Date,
-    default: Date.now
+    default: () => Date.now()
   },
   isVerified: {
     type: Boolean,
@@ -52,14 +52,14 @@ const userSchema = new mongoose.Schema({
   },
   verificationOtpExpireAt: {
     type: Date,
-    default: Date.now
+    default: () => Date.now()
   }
 }, {
   timestamps: true
 });
 
 // Hash password before saving
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {
     next();
   }
@@ -68,7 +68,7 @@ userSchema.pre('save', async function(next) {
 });
 
 // Method to compare password
-userSchema.methods.matchPassword = async function(enteredPassword) {
+userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 

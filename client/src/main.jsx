@@ -5,12 +5,13 @@ import { router } from './routes/routes'
 import axios from 'axios'
 import './index.css'
 
-// API base must be provided via environment (VITE_API_BASE_URL)
+// In dev, VITE_API_BASE_URL is intentionally empty so Vite proxy handles /api/* requests.
+// In production it must be set to the deployed backend URL.
 const API_BASE = import.meta.env.VITE_API_BASE_URL
-if(!API_BASE){
+if (!API_BASE && import.meta.env.PROD) {
   console.error('VITE_API_BASE_URL not set');
 }
-axios.defaults.baseURL = API_BASE
+axios.defaults.baseURL = API_BASE || ''
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

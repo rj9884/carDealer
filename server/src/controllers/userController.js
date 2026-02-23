@@ -316,7 +316,12 @@ export const resendVerificationOtp = async (req, res) => {
       html: emailContent
     });
 
-    await transporter.sendMail(mailOptions);
+    try {
+      await transporter.sendMail(mailOptions);
+    } catch (emailError) {
+      console.error('[resendVerificationOtp] Email error:', emailError.message);
+      return res.status(500).json({ message: 'Failed to send verification email. Check SMTP config.' });
+    }
 
     res.json({ message: 'Verification OTP sent successfully' });
   } catch (error) {
@@ -356,7 +361,12 @@ export const requestPasswordReset = async (req, res) => {
       html: emailContent
     });
 
-    await transporter.sendMail(mailOptions);
+    try {
+      await transporter.sendMail(mailOptions);
+    } catch (emailError) {
+      console.error('[requestPasswordReset] Email error:', emailError.message);
+      return res.status(500).json({ message: 'Failed to send reset email. Check SMTP configuration.' });
+    }
 
     res.json({ message: 'Password reset OTP sent successfully' });
   } catch (error) {
