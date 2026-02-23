@@ -1,5 +1,5 @@
 import User from '../models/User.js';
-import { generateToken, setTokenCookie, clearTokenCookie } from '../middlewares/auth.js';
+import { generateToken, setTokenCookie, clearTokenCookie, invalidateUserCache } from '../middlewares/auth.js';
 import { uploadOnCloudinary } from '../utils/cloudinary.js';
 import {
   transporter,
@@ -146,31 +146,24 @@ export const getUserProfile = async (req, res) => {
 
 export const updateUserProfile = async (req, res) => {
   try {
-    // Fix path slashes for Windows
-    const profileLocalPath = req.file?.path?.replace(/\\/g, "/");
-
-    if (!profileLocalPath) {
-      return res.status(400).json({ message: "Profile file is missing" });
-    }
-
-    const profile = await uploadOnCloudinary(profileLocalPath);
-
-    if (!profile || (!profile.url && !profile.secure_url)) {
-      return res.status(400).json({ message: "Error while uploading profile picture" });
-    }
-
     const user = await User.findById(req.user._id);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Update fields
-    user.username = req.body.username || user.username;
-    user.email = req.body.email || user.email;
-    user.profilePicture = profile.secure_url || profile.url || user.profilePicture;
+    // Update text fields if provided
+    if (req.body.username) user.username = req.body.username;
+    if (req.body.email) user.email = req.body.email;
+    if (req.body.password) user.password = req.body.password;
 
-    if (req.body.password) {
-      user.password = req.body.password;
+    // Only upload & update profilePicture if a file was actually sent
+    if (req.file) {
+      const profileLocalPath = req.file.path.replace(/\\/g, "/");
+      const profile = await uploadOnCloudinary(profileLocalPath);
+      if (!profile || (!profile.url && !profile.secure_url)) {
+        return res.status(400).json({ message: "Error while uploading profile picture" });
+      }
+      user.profilePicture = profile.secure_url || profile.url;
     }
 
     const updatedUser = await user.save();
@@ -197,8 +190,14 @@ export const updateUserProfile = async (req, res) => {
 
 export const getUsers = async (req, res) => {
   try {
-    const users = await User.find({}).select('-password');
-    res.json(users);
+    const limit = Math.min(parseInt(req.query.limit) || 200, 200);
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const skip = (page - 1) * limit;
+    const [users, total] = await Promise.all([
+      User.find({}).select('-password').skip(skip).limit(limit),
+      User.countDocuments()
+    ]);
+    res.json({ users, total, page, pages: Math.ceil(total / limit) });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
@@ -208,6 +207,7 @@ export const getUsers = async (req, res) => {
 
 export const logoutUser = async (req, res) => {
   try {
+    invalidateUserCache(req.user?._id);
     clearTokenCookie(res);
     res.json({ message: 'Logged out successfully' });
   } catch (error) {

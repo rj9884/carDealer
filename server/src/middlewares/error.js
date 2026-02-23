@@ -16,9 +16,10 @@ export const errorHandler = (err, req, res, next) => {
   }
 
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
-  if (process.env.NODE_ENV === 'development') {
-    console.error('Error:', err);
-  }
+
+  // Always log on server — stack is hidden from the client response in production
+  console.error(`[ERROR] ${req.method} ${req.originalUrl} →`, err);
+
   res.status(statusCode).json({
     message: err.message,
     stack: process.env.NODE_ENV === 'production' ? null : err.stack,

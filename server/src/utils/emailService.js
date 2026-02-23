@@ -2,8 +2,10 @@ import nodemailer from 'nodemailer';
 import { SMTP_USER, SMTP_PASS, SENDER_EMAIL } from '../config/env.js';
 
 const transporter = nodemailer.createTransport({
-    host: "smtp-relay.brevo.com",
+    host: "smtp.brevo.com",   // smtp-relay requires whitelisted IPs; smtp.brevo.com uses API key only
     port: 587,
+    secure: false,            // STARTTLS on port 587
+    requireTLS: true,
     auth: {
         user: SMTP_USER,
         pass: SMTP_PASS,

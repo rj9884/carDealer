@@ -4,7 +4,7 @@ import { v2 as cloudinary } from 'cloudinary';
 
 const extractPublicIdFromUrl = (url) => {
   if (!url || typeof url !== 'string') return null;
-  
+
   // Extract public_id from URL
   const match = url.match(/\/upload\/[^\/]+\/([^\/]+(?:\/[^\/]+)*)/);
   if (match) {
@@ -17,7 +17,7 @@ const extractPublicIdFromUrl = (url) => {
 
 const deleteImagesFromCloudinary = async (imageUrls) => {
   if (!imageUrls || !Array.isArray(imageUrls)) return;
-  
+
   for (const imageUrl of imageUrls) {
     try {
       const publicId = extractPublicIdFromUrl(imageUrl);
@@ -34,41 +34,41 @@ const deleteImagesFromCloudinary = async (imageUrls) => {
 
 export const getCars = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 5;
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const limit = Math.min(parseInt(req.query.limit) || 5, 100); // hard cap at 100
     const skip = (page - 1) * limit;
 
     const filter = {};
-    
+
     if (req.query.color) {
       filter.color = { $regex: req.query.color, $options: 'i' };
     }
-    
+
     if (req.query.minPrice || req.query.maxPrice) {
       filter.price = {};
       if (req.query.minPrice) filter.price.$gte = parseInt(req.query.minPrice);
       if (req.query.maxPrice) filter.price.$lte = parseInt(req.query.maxPrice);
     }
-    
+
     if (req.query.make) {
       filter.make = { $regex: req.query.make, $options: 'i' };
     }
-    
+
     if (req.query.fuelType) {
       filter.fuelType = req.query.fuelType;
     }
-    
+
     if (req.query.bodyType) {
       filter.bodyType = req.query.bodyType;
     }
-    
+
     if (req.query.condition) {
       filter.condition = req.query.condition;
     }
 
     // Get total count for pagination
     const total = await Car.countDocuments(filter);
-    
+
     // Get cars with pagination
     const cars = await Car.find(filter)
       .populate('seller', 'username email')
@@ -96,7 +96,7 @@ export const getCars = async (req, res) => {
 export const getCarById = async (req, res) => {
   try {
     const car = await Car.findById(req.params.id).populate('seller', 'username email');
-    
+
     if (car) {
       res.json(car);
     } else {
@@ -110,7 +110,7 @@ export const getCarById = async (req, res) => {
 
 export const createCar = async (req, res) => {
   try {
-    
+
     let imageUrls = [];
     if (req.files && req.files.length > 0) {
       // Upload each image to Cloudinary
@@ -167,7 +167,7 @@ export const updateCar = async (req, res) => {
       }
 
       const updateData = { ...req.body };
-      
+
       if (newImageUrls.length > 0) {
         // If req.body.images is provided, use that; otherwise, append new images to existing ones
         if (req.body.images && Array.isArray(req.body.images)) {
@@ -225,7 +225,7 @@ export const getFeaturedCars = async (req, res) => {
     const featuredCars = await Car.find({ isFeatured: true })
       .populate('seller', 'username email')
       .limit(6);
-    
+
     // Ensure we always return an array
     res.json(featuredCars || []);
   } catch (error) {
@@ -237,13 +237,17 @@ export const getFeaturedCars = async (req, res) => {
 export const searchCars = async (req, res) => {
   try {
     const { q } = req.query;
-    
+
     if (!q) {
       return res.status(400).json({ message: 'Search query is required' });
     }
 
+    if (q.length > 100) {
+      return res.status(400).json({ message: 'Search query too long (max 100 characters)' });
+    }
+
     const searchRegex = { $regex: q, $options: 'i' };
-    
+
     const cars = await Car.find({
       $or: [
         { make: searchRegex },
@@ -265,7 +269,7 @@ export const searchCars = async (req, res) => {
 export const removeCarImages = async (req, res) => {
   try {
     const { imageUrls } = req.body; // Array of image URLs to remove
-    
+
     if (!imageUrls || !Array.isArray(imageUrls)) {
       return res.status(400).json({ message: 'Image URLs array is required' });
     }
@@ -282,7 +286,7 @@ export const removeCarImages = async (req, res) => {
 
     // Filter out the images to be removed
     const remainingImages = car.images.filter(img => !imageUrls.includes(img));
-    
+
     // Check if at least one image remains
     if (remainingImages.length === 0) {
       return res.status(400).json({ message: 'At least one car image is required' });
@@ -295,9 +299,9 @@ export const removeCarImages = async (req, res) => {
     car.images = remainingImages;
     await car.save();
 
-    res.json({ 
+    res.json({
       message: 'Images removed successfully',
-      remainingImages: car.images 
+      remainingImages: car.images
     });
   } catch (error) {
     console.error(error);

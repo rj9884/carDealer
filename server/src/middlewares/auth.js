@@ -2,6 +2,33 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import { JWT_SECRET } from '../config/env.js';
 
+// ── Auth cache ────────────────────────────────────────────────────────────────
+// Avoids a DB hit on every authenticated request. Entries expire after 60 s.
+const USER_CACHE_TTL_MS = 60 * 1000;
+const USER_CACHE_MAX = 500;
+const userCache = new Map(); // id → { user, cachedAt }
+
+const getCachedUser = (id) => {
+  const entry = userCache.get(id);
+  if (!entry) return null;
+  if (Date.now() - entry.cachedAt > USER_CACHE_TTL_MS) {
+    userCache.delete(id);
+    return null;
+  }
+  return entry.user;
+};
+
+const setCachedUser = (id, user) => {
+  if (userCache.size >= USER_CACHE_MAX) {
+    // Evict the oldest entry
+    userCache.delete(userCache.keys().next().value);
+  }
+  userCache.set(id, { user, cachedAt: Date.now() });
+};
+
+export const invalidateUserCache = (id) => userCache.delete(String(id));
+// ─────────────────────────────────────────────────────────────────────────────
+
 export const protect = async (req, res, next) => {
   let token;
 
@@ -17,21 +44,27 @@ export const protect = async (req, res, next) => {
   }
 
   try {
-    
     const decoded = jwt.verify(token, JWT_SECRET);
+    const id = String(decoded.id);
 
-    req.user = await User.findById(decoded.id).select('-password');
+    let user = getCachedUser(id);
+    if (!user) {
+      user = await User.findById(id).select('-password');
+      if (user) setCachedUser(id, user);
+    }
 
-    if (!req.user) {
+    if (!user) {
       return res.status(401).json({ message: 'Not authorized, user not found' });
     }
 
+    req.user = user;
     next();
   } catch (error) {
     console.error(error);
     res.status(401).json({ message: 'Not authorized, token failed' });
   }
 };
+
 
 export const admin = (req, res, next) => {
   if (req.user && req.user.role === 'admin') {
@@ -51,7 +84,7 @@ export const generateToken = (id) => {
 export const setTokenCookie = (res, token) => {
   const cookieOptions = {
     expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-    httpOnly: true, 
+    httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
     path: '/', // Cookie available across the site
@@ -59,7 +92,7 @@ export const setTokenCookie = (res, token) => {
 
   res.cookie('jwt', token, cookieOptions);
 };
- 
+
 export const clearTokenCookie = (res) => {
   res.cookie('jwt', '', {
     expires: new Date(0), // Expires immediately

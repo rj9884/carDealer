@@ -1,6 +1,18 @@
 import connectDB from './config/connectDB.js';
+import { app } from './app.js';
 
-import {app} from './app.js';
+// ── Crash guards ──────────────────────────────────────────────────────────────
+// Log the reason before the process exits so Render / logs capture it.
+process.on('uncaughtException', (err) => {
+    console.error('[FATAL] Uncaught Exception:', err);
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (reason) => {
+    console.error('[FATAL] Unhandled Rejection:', reason);
+    process.exit(1);
+});
+// ─────────────────────────────────────────────────────────────────────────────
 
 const requiredEnv = ['MONGODB_URI'];
 requiredEnv.forEach(v => {
@@ -9,7 +21,10 @@ requiredEnv.forEach(v => {
     }
 });
 
-connectDB().catch(err => console.log("Database Connection Failed!!", err.message));
+connectDB().catch(err => {
+    console.error('[FATAL] Database Connection Failed:', err.message);
+    process.exit(1);
+});
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {

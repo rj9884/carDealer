@@ -1,17 +1,27 @@
 import { createBrowserRouter, createRoutesFromElements, Route } from 'react-router-dom'
+import { lazy, Suspense } from 'react'
 import App from '../App'
-import Home from '../pages/Home'
-import Login from '../pages/Login'
-import Register from '../pages/Register'
-import CarListing from '../pages/CarListing'
-import CarDetail from '../pages/CarDetail'
-import Profile from '../pages/Profile'
-import AdminPanel from '../pages/AdminPanel'
 import ProtectedRoute from '../components/ProtectedRoute'
 import ErrorBoundary from '../components/ErrorBoundary'
 import { AuthProvider } from '../context/AuthContext'
-import VerifyEmail from '../pages/VerifyEmail'
-import ResetPassword from '../pages/ResetPassword'
+
+// Lazy-loaded pages — Vite splits each into its own chunk
+const Home = lazy(() => import('../pages/Home'))
+const Login = lazy(() => import('../pages/Login'))
+const Register = lazy(() => import('../pages/Register'))
+const CarListing = lazy(() => import('../pages/CarListing'))
+const CarDetail = lazy(() => import('../pages/CarDetail'))
+const Profile = lazy(() => import('../pages/Profile'))
+const AdminPanel = lazy(() => import('../pages/AdminPanel'))
+const VerifyEmail = lazy(() => import('../pages/VerifyEmail'))
+const ResetPassword = lazy(() => import('../pages/ResetPassword'))
+
+const PageLoader = () => (
+  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+    <div style={{ width: 40, height: 40, border: '4px solid #e5e7eb', borderTopColor: '#6366f1', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+    <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+  </div>
+)
 
 /**
  * Application routes configuration
@@ -27,20 +37,20 @@ const routes = createRoutesFromElements(
       </ErrorBoundary>
     }
   >
-    <Route index element={<Home />} />
-    <Route path="login" element={<Login />} />
-    <Route path="register" element={<Register />} />
-    <Route path="verify-email" element={<VerifyEmail />} />
-    <Route path="reset-password" element={<ResetPassword />} />
+    <Route index element={<Suspense fallback={<PageLoader />}><Home /></Suspense>} />
+    <Route path="login" element={<Suspense fallback={<PageLoader />}><Login /></Suspense>} />
+    <Route path="register" element={<Suspense fallback={<PageLoader />}><Register /></Suspense>} />
+    <Route path="verify-email" element={<Suspense fallback={<PageLoader />}><VerifyEmail /></Suspense>} />
+    <Route path="reset-password" element={<Suspense fallback={<PageLoader />}><ResetPassword /></Suspense>} />
     <Route path="cars">
-      <Route index element={<CarListing />} />
-      <Route path=":id" element={<CarDetail />} />
+      <Route index element={<Suspense fallback={<PageLoader />}><CarListing /></Suspense>} />
+      <Route path=":id" element={<Suspense fallback={<PageLoader />}><CarDetail /></Suspense>} />
     </Route>
     <Route
       path="profile"
       element={
         <ProtectedRoute>
-          <Profile />
+          <Suspense fallback={<PageLoader />}><Profile /></Suspense>
         </ProtectedRoute>
       }
     />
@@ -48,7 +58,7 @@ const routes = createRoutesFromElements(
       path="admin"
       element={
         <ProtectedRoute adminOnly>
-          <AdminPanel />
+          <Suspense fallback={<PageLoader />}><AdminPanel /></Suspense>
         </ProtectedRoute>
       }
     />
@@ -63,3 +73,4 @@ export const router = createBrowserRouter(routes, {
     v7_startTransition: true
   }
 })
+
