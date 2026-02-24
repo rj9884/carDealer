@@ -35,7 +35,7 @@ const AdminPanel = () => {
         axios.get('/api/users')
       ])
       setCars(carsRes.data.cars)
-      setUsers(usersRes.data)
+      setUsers(usersRes.data.users ?? usersRes.data)
     } catch (error) {
       console.error('Error fetching data:', error)
     } finally {
