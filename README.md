@@ -1,6 +1,6 @@
 # CarDekho - Buy & Sell Certified Used Cars
 
-[**Live Demo**](https://cardealer-frontend-fyyz.onrender.com/)
+[**Live Demo**](https://car-dekho-iota.vercel.app/)
 
 > **Your trusted partner for buying and selling quality pre-owned vehicles with transparency and ease.**
 
